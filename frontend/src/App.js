@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {BrowserRouter,Route,Switch} from "react-router-dom"
 import Home from './components/home/Home';
@@ -15,8 +15,12 @@ import "./App.css"
 
 const  App = () => {
     const token = useSelector((state)=>state.user.token)
+    const[AppHeight,setAppHeight]=useState(`100vh`)
+    useEffect(()=>{
+      setAppHeight(`${window.innerHeight - 1}px`)
+    },[])
   return (
-    <div className="App">
+    <div className="App" style={{height:AppHeight}}>
       <BrowserRouter>
          <Navbar />
               <Switch>

@@ -12,8 +12,6 @@
     padding: 0px 20px;
 }
 .navbar-section .logo{
-    display: flex;
-    align-items: center;
     font-size: 18px;
     font-weight: bold;
     height: 45px;
@@ -22,6 +20,9 @@
 .navbar-section .logo a{
     text-decoration: none;
     color: inherit;
+    height: inherit;
+    display: flex;
+    align-items: center;
 }
 .navbar-section .toggel{
     padding: 0px 20px;

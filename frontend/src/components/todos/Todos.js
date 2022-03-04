@@ -20,7 +20,6 @@ const Todos = () =>{
     ]);
     const [selected,setSelected] =useState("SHOW_ALL")
     const data = useSelector((state)=>state.todo.todos)
-    console.log(data)
     const [val,setVal] =useState("SHOW_ALL")
 
 

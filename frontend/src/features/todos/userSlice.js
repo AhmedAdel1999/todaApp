@@ -1,10 +1,11 @@
 import { createSlice,createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axiosInstance from '../../components/utils/baseUrl';
 const initialState = {
   token:null,
   username:null,
   isSuccess:false,
   isError:false,
+  isLoading:false,
   errMessage:"",
   status: 'idle',
 };
@@ -13,7 +14,7 @@ export const registerTodo =createAsyncThunk(
   "user/registerTodo",
   async(obj,{ rejectWithValue,fulfillWithValue })=>{
     try{
-      const response = await axios.post("http://localhost:5001/register",{...obj})
+      const response = await axiosInstance.post("/register",{...obj})
       const data = await response.data
       return fulfillWithValue(data)
     }catch(error){
@@ -26,7 +27,7 @@ export const loginTodo =createAsyncThunk(
   "user/loginTodo",
   async(obj,{ rejectWithValue,fulfillWithValue })=>{
     try{
-      const response = await axios.post("http://localhost:5001/login",{...obj})
+      const response = await axiosInstance.post("/login",{...obj})
       const data = await response.data
       return fulfillWithValue(data)
     }catch(error){
@@ -49,22 +50,33 @@ export const userSlice = createSlice({
     })
   },
   extraReducers:{
+    [registerTodo.pending]:((state)=>{
+      state.isLoading=true
+    }),
     [registerTodo.rejected]:((state,action)=>{
-      state.isSuccess=false
       state.isError=true
+      state.isLoading=false
       state.errMessage=action.payload.error.message
     }),
-
-    [loginTodo.fulfilled]:((state,action)=>{
-      console.log(action.payload)
+    [registerTodo.fulfilled]:((state,action)=>{
       state.isSuccess=true
-      state.isError=false
+      state.isLoading=false
+      state.token=action.payload.token
+      state.username=action.payload.userName
+    }),
+
+    [loginTodo.pending]:((state)=>{
+      state.isLoading=true
+    }),
+    [loginTodo.fulfilled]:((state,action)=>{
+      state.isSuccess=true
+      state.isLoading=false
       state.token=action.payload.token
       state.username=action.payload.userName
     }),
     [loginTodo.rejected]:((state,action)=>{
-      state.isSuccess=false
       state.isError=true
+      state.isLoading=false
       state.errMessage=action.payload.error.message
     }),
   }

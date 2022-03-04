@@ -1,13 +1,16 @@
 import React,{ useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useParams } from "react-router";
-import Message from "../utils/message";
-import { createTodo, updataTodo } from "../../features/todos/todoSlice"
+import { useHistory } from "react-router-dom/cjs/react-router-dom.min";
+import { clearTodoState, createTodo, updataTodo } from "../../features/todos/todoSlice"
 import KeyboardBackspaceIcon from '@material-ui/icons/KeyboardBackspace';
+import { useToasts } from "react-toast-notifications";
 import { useDispatch,useSelector } from "react-redux"
+import Ring from "react-cssfx-loading/lib/Ring"
 import { GetConfig } from "../utils/userData";
-import "./createtodo.css"
 import ErrorMsg from "../utils/errorMsg";
+import "./createtodo.css"
+
+
 
 function getFormattedDate(date) {
     var year = date.getFullYear();
@@ -30,53 +33,64 @@ const CreateTodoItem = () =>{
         complete:false,
         archive:false
     })
-    const[open,setOpen] = useState(false)
     const[Edit,setEdit] = useState(false)
-    const[error,setError]=useState(null)
     const dispatch = useDispatch();
+    const history = useHistory()
     const {id} = useParams()
-    const todos = useSelector((state)=>state.todo.todos)
+    const { addToast:notify } = useToasts()
+    const {todos,isLoading,isSuccess,isError,errorMsg,successMsg} = useSelector((state)=>state.todo)
     const currentTodo = id && todos.filter((ele)=>ele._id===id)[0]
 
     useEffect(()=>{
       if(id){
-          setTodo({...currentTodo})
-          setEdit(true)
+        setTodo({...currentTodo})
+        setEdit(true)
       }
     },[id])
+
+    useEffect(()=>{
+        dispatch(clearTodoState())
+    },[])
+
+    useEffect(()=>{
+      if(isSuccess){
+        dispatch(clearTodoState())
+        notify(`${successMsg}`,
+        {appearance: 'success',autoDismiss:"true"})
+        history.push("/")
+      }
+    },[isSuccess])
+
      const handelChange = (e) =>{
         const{name,value}=e.target
         setTodo({...todo,[name]:value})
      }
-     const handleClose = () => {
-        setOpen(false)
-      };
+
      const handelSubmit = async (e) =>{
         e.preventDefault();
-        try {
-            if(Edit){
+        if(Edit){
+            if(todo.discription==="" || todo.title===""){
+                notify(`You Have To Fill All Fields First`,
+                {appearance: 'warning',autoDismiss:"true"})
+            }else{
                 await dispatch(updataTodo({todo,config}))
-                setOpen(!open)
+            }   
+        }
+        else{
+            if(todo.discription==="" || todo.title===""){
+                notify(`You Have To Fill All Fields First`,
+                {appearance: 'warning',autoDismiss:"true"})
+            }else{
+                await dispatch(createTodo({todo,config}))
+                setTodo({...todo,discription:"",title:""})
             }
-            else{
-                if(todo.discription==="" || todo.title===""){
-                    setError("You have to fill all parameters first")
-                }else{
-                    await dispatch(createTodo({todo,config}))
-                    setTodo({...todo,discription:"",title:""})
-                    setError(null)
-                    setOpen(!open)
-                }
-            }
-        } catch (error) {
-            setError(error)
         }
      }
     return(
         <div className="create-todos">
             <div className="create-box">
                 {
-                    error&&<ErrorMsg msg={error} />
+                    isError&&<ErrorMsg msg={errorMsg} />
                 }
                 <form onSubmit={handelSubmit}>
                     <div>
@@ -98,15 +112,31 @@ const CreateTodoItem = () =>{
                     <label>task compeletion data</label>
                         <input type="date" name="date" value={getFormattedDate(new Date(todo.date))} onChange={handelChange} />
                     </div>
-                    <div><button type="submit">{Edit?"Update Todo":"Create Todo"}</button></div>
+                    <div>
+                        <button type="submit">
+                            {
+                               Edit?
+                               <React.Fragment>
+                                   <span>Update Todo</span>
+                                   {
+                                       isLoading&&
+                                       <Ring color="#FFF" width="25px" height="25px" duration="1s" />
+                                   }
+                               </React.Fragment>
+                               :
+                               <React.Fragment>
+                                   <span>Create Todo</span>
+                                   {
+                                       isLoading&&
+                                       <Ring color="#FFF" width="25px" height="25px" duration="1s" />
+                                   }
+                               </React.Fragment>
+                            }
+                        </button>
+                    </div>
                 </form>
-                <button><Link to={'/'}><KeyboardBackspaceIcon /></Link></button>
+                <button onClick={()=>history.push("/")}><KeyboardBackspaceIcon /></button>
                 
-            </div>
-            <div>
-            {open?(
-                <Message open={open} handleClose = {handleClose} />
-            ):(null)}
             </div>
         </div>
     )

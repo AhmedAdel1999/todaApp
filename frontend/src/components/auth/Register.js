@@ -1,16 +1,20 @@
 import React,{useEffect} from "react";
 import { useDispatch,useSelector } from 'react-redux';
+import { useHistory } from "react-router-dom";
 import { Formik, Form, Field , ErrorMessage } from 'formik';
 import LockIcon from '@material-ui/icons/Lock';
-import * as Yup from "yup"
 import { registerTodo,cleanState } from "../../features/todos/userSlice";
+import Load from "../utils/Load";
 import ErrorMsg from "../utils/errorMsg";
+import * as Yup from "yup"
 import "./auth.css"
+
 
 const Register = () => {
 
-  const {isSuccess,isError,errMessage} = useSelector((state)=>state.user)
+  const {isSuccess,isError,isLoading,errMessage} = useSelector((state)=>state.user)
   const dispatch = useDispatch()
+  const history = useHistory()
 
   const onSubmit = async(values)=>{
     await dispatch(registerTodo(values))
@@ -23,7 +27,7 @@ const Register = () => {
   useEffect(() => {
     if (isSuccess) {
       dispatch(cleanState());
-      window.location.href="/";
+      history.push("/")
     }
   }, [isSuccess, isError]);
   
@@ -34,6 +38,11 @@ const Register = () => {
     })
     return schema
   }
+
+  if(isLoading){
+    return <Load />
+  }
+
   return (
     <div className="auth">
         <div className="auth-content">
